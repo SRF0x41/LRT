@@ -32,3 +32,4 @@ class Navigation:
         # Update label via callback
         if self.update_callback:
             self.update_callback(coords_text)
+

@@ -1,7 +1,9 @@
 from kivy.app import App
 from kivy.uix.label import Label
 from kivy.clock import Clock
+import json
 from Navigation import Navigation
+from DataStore import DataStore
 
 
 class LRT(App):
@@ -22,12 +24,24 @@ class LRT(App):
 
     def update_label(self, coords_text):
         """Called whenever GPS coordinates are updated."""
-        # Ensure updates happen on the main UI thread
         setattr(self.label, 'text', coords_text)
+        
+        # Keep a log of all data locally
+        app = App.get_running_app()
+        data_dir = app.user_data_dir
+        
+        data = DataStore(data_dir)
+        
+        #data.test_store()
+        #data.test_retrive()
+        
+        data.see_full_path()
+        
+        
+        
 
         
 if __name__ == '__main__':
     app = LRT()
     app.run()
-        
         
