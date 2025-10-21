@@ -13,6 +13,7 @@ class Navigation:
             traceback.print_exc()
 
     def start(self):
+        # keep these settings for driving and moving walking
         gps.start(minTime=1000, minDistance=1)
 
     def stop(self):
