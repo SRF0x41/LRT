@@ -21,6 +21,12 @@ class Navigation:
     
 
     def on_location(self, **kwargs):
+        '''kwargs dict
+        {
+            'lat': 37.7749,
+            'lon': -122.4194,
+            'alt': 15
+        }'''
         # Save location and format nicely
         self.gps_location = kwargs
         lat = kwargs.get('lat', 0)
@@ -31,5 +37,5 @@ class Navigation:
 
         # Update label via callback
         if self.update_callback:
-            self.update_callback(coords_text)
+            self.update_callback(**kwargs)
 
