@@ -28,12 +28,18 @@ class DataBrocker:
                 -> document-date_time 1000 gps hits
                     -> list of json data points
                 -> document-date_time 1000 gps hits'''
+                
+                
+                
         
-    def upload_backend(self,current_date,json_data_entry):
+    def upload_to_server(self,current_date,json_data_entry):
+        # Get master collection
         master_collection_ref = db.collection('date_gps_data')
         
+        # Get the current date collection, will create one if not found
         current_date_collection = master_collection_ref.collection(current_date)
         
+        # 
         latest_doc_query = current_date_collection.order_by("timestamp", direction=firestore.Query.DESCENDING).limit(1)
         docs = latest_doc_query.stream()
         
