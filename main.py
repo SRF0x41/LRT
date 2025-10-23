@@ -20,14 +20,27 @@ from datetime import datetime
     '''
 
 class LRT(App):
+    
+    
     def build(self):
-        
-        
+        '''btn = Button(
+            text="Click Me!",
+            size_hint=(0.3, 0.2),  # width: 30%, height: 20% of parent
+            pos_hint={'center_x': 0.5, 'center_y': 0.5}  # centered
+        )'''
         layout = BoxLayout(orientation='vertical')  # Vertical stacking
 
         label_top = Label(text="Top Label")
         label_middle = Label(text="Middle Label")
         label_bottom = Label(text="Bottom Label")
+        self.toggle_record_data = False
+        toggle_gps_system = Button(
+            text = "Toggle GPS",
+            size_hint=(1, 0.4)
+        )
+        toggle_gps_system.bind(on_press=self.toggle_start_gps_system)
+        layout.add_widget(toggle_gps_system)
+        
 
         layout.add_widget(label_top)
         layout.add_widget(label_middle)
@@ -59,6 +72,11 @@ class LRT(App):
         #self.data_store_obj.record_gps_data(**kwargs)
         #self.data_store_obj.retrieve_current_date_gps_data()
         #self.data_store_obj.see_full_path_data()
+        
+    def toggle_start_gps_system(self,instance):
+        print(f"GPS system toggled {self.toggle_record_data}")
+        instance.text = "Pressed"
+        self.toggle_start_gps_system = not self.toggle_start_gps_system
         
 if __name__ == '__main__':
     app = LRT()
