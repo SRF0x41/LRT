@@ -1,6 +1,7 @@
 from datetime import datetime
 import json
 import os
+import shutil
 
 class DataStore:
     # 20 as a test
@@ -12,9 +13,15 @@ class DataStore:
                 -> json with 1000 hits'''
                 
                 
+    ''' CSV Compatible data storage
+        isotime,lat,lon
+        
+        printed just as text lines'''
+                
+                
     def __init__(self, file_path):
         self.APP_FILE_PATH = file_path
-        self.test_json_path = f"{self.APP_FILE_PATH}/test_json_data.jsons"
+
         
         # Make a new folder of the current date, do nothing if it already exists
         self.current_datetime = datetime.now()
@@ -28,13 +35,16 @@ class DataStore:
         # Check to see if the current_day_path folder is empty
         if not os.listdir(self.current_day_path):
             # if empty create a new file file
-            self.current_day_timestamp_file = f"{self.current_day_path}/{self.current_datetime.isoformat()}_gps_data.jsons"
+            print(f"Current day {self.current_day_timestamp_file} is empty.e")
+            self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
             with open(self.current_day_timestamp_file, 'w'):
                 pass
         else:
-            # Get the path of the last jsons file created
+            # Get the path of the last file created
             files = os.listdir(self.current_day_path)
-            files = [f.removesuffix("_gps_data.jsons") for f in files]
+            print(f"Files found in current day folder ")
+            print(files)
+            files = [f.removesuffix("_gps_data.txt") for f in files]
             # Creating a list of datetime objects
             dt_list = []
             for pulled_iso_label in files:
@@ -46,7 +56,7 @@ class DataStore:
                     
             # if no valid datetime files (other misc files) create a new file
             if len(dt_list) == 0:
-                self.current_day_timestamp_file = f"{self.current_day_path}/{self.current_datetime.isoformat()}_gps_data.jsons"
+                self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
                 with open(self.current_day_timestamp_file, 'w'):
                     pass
             else:
@@ -55,7 +65,7 @@ class DataStore:
                 print("Latest timestamp:", latest_created_file_timestamp_label.isoformat())
                 
                 # Set the current_day_timestamp file to the last one
-                self.current_day_timestamp_file = f"{self.current_day_path}/{latest_created_file_timestamp_label.isoformat()}_gps_data.jsons"
+                self.current_day_timestamp_file = f"{self.current_day_path}/{latest_created_file_timestamp_label.isoformat()}_gps_data.txt"
                 
                 # Check if its not <=500 lines
                 number_gps_entries = None
@@ -64,7 +74,7 @@ class DataStore:
                     
                 if number_gps_entries >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
                     # Create a fresh file
-                    self.current_day_timestamp_file = f"{self.current_day_path}/{self.current_datetime.isoformat()}_gps_data.jsons"
+                    self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
                     with open(self.current_day_timestamp_file, 'w'):
                         pass
 
@@ -76,11 +86,15 @@ class DataStore:
     def record_gps_data(self, **kwargs):
         latitude = round(kwargs.get('lat'),5)
         longitude = round(kwargs.get('lon'),5)
-        current_date_gps_data_entry = {self.current_datetime.isoformat() : {'lat':latitude, 'lon':longitude}}
-
+        
+        # Check if the file is full
+        with open(self.current_day_timestamp_file, 'r') as fp:
+            number_of_entries = len(fp.readlines())
+        if number_of_entries >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
+            self.create_new_timestamp_file()
+        
         with open(self.current_day_timestamp_file, "a") as f:
-            json.dump(current_date_gps_data_entry, f)
-            f.write("\n")
+            f.write(f"{datetime.now().isoformat()},{latitude},{longitude}\n")
                 
     
             
@@ -88,17 +102,20 @@ class DataStore:
         entries_on_file = self.get_number_of_entries(self.current_day_timestamp_file)
         if entries_on_file >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
             # Create a fresh file
-            self.current_day_timestamp_file = f"{self.current_day_path}/{self.current_datetime.isoformat()}_gps_data.jsons"
+            self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
             with open(self.current_day_timestamp_file, 'w'):
                 pass
         with open(self.current_day_timestamp_file, 'r') as f:
             for line in f:
-                if line.strip():  # skip blanks
-                    entry = json.loads(line)
-                    print(entry)
+                if line.strip():
+                    timestamp, lat, lon = line.strip().split(',')
+                    print(timestamp, lat, lon)
 
             
-            
+    def create_new_timestamp_file(self):
+        self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
+        with open(self.current_day_timestamp_file, 'w'):
+                pass
             
             
             
@@ -141,3 +158,33 @@ class DataStore:
             print(f"{file_path_rm} deleted")
         else:
             print("File not found")
+
+
+
+    def DELETE_EVERYTHING(self, start_path):
+        """
+        Nukes all files and folders starting at start_path.
+        Use with care, see?
+        """
+        if not os.path.exists(start_path):
+            print(f"Path does not exist: {start_path}")
+            return
+
+        for root, dirs, files in os.walk(start_path, topdown=False):
+            for name in files:
+                try:
+                    os.remove(os.path.join(root, name))
+                except Exception as e:
+                    print(f"Failed to delete file {name}: {e}")
+            for name in dirs:
+                try:
+                    shutil.rmtree(os.path.join(root, name))
+                except Exception as e:
+                    print(f"Failed to delete folder {name}: {e}")
+        
+        # Optionally delete the root folder itself
+        try:
+            shutil.rmtree(start_path)
+            print(f"Deleted start folder: {start_path}")
+        except Exception as e:
+            print(f"Failed to delete start folder {start_path}: {e}")

@@ -23,16 +23,35 @@ class LRT(App):
     
     
     def build(self):
-        '''btn = Button(
-            text="Click Me!",
-            size_hint=(0.3, 0.2),  # width: 30%, height: 20% of parent
-            pos_hint={'center_x': 0.5, 'center_y': 0.5}  # centered
-        )'''
-        layout = BoxLayout(orientation='vertical')  # Vertical stacking
+        ''' ---------- UI SET UP ----------'''
+        layout = BoxLayout(
+            orientation='vertical',
+            padding=[10, 120, 10, 10],  # [left, top, right, bottom]
+            spacing=10
+        )
 
-        label_top = Label(text="Top Label")
-        label_middle = Label(text="Middle Label")
-        label_bottom = Label(text="Bottom Label")
+        self.moniter_text_buffer= []
+        self.system_moniter = Label(
+            text=(
+                "SYSTEM BOOT SEQUENCE INITIATED\n"
+                "------------------------------\n"
+                "LOADING FLIGHT PARAMETERS...\n"
+                "CHECKING NAVIGATION SENSORS...\n"
+                "GYRO ALIGNMENT: COMPLETE\n"
+                "FUEL PRESSURE: NOMINAL\n"
+                "OXYGEN FLOW: STABLE\n"
+                "------------------------------\n"
+                "READY FOR MANUAL COMMAND INPUT\n"
+            ),
+            font_name="RobotoMono-Regular",  # or another monospaced font
+            halign="left",
+            valign="top",
+            text_size=(1000, None),  # ensures proper line wrapping
+            size_hint=(1, 1)
+        )
+
+        layout.add_widget(self.system_moniter)
+    
         self.toggle_record_data = False
         toggle_gps_system = Button(
             text = "Toggle GPS",
@@ -41,10 +60,25 @@ class LRT(App):
         toggle_gps_system.bind(on_press=self.toggle_start_gps_system)
         layout.add_widget(toggle_gps_system)
         
-
-        layout.add_widget(label_top)
-        layout.add_widget(label_middle)
-        layout.add_widget(label_bottom)
+        # Hard delete everything locally
+        delete_local_data_button = Button(
+            text = 'Delete Local Data',
+            size_hint=(1,0.4)
+        )
+        delete_local_data_button.bind(on_press = self.delete_local_data)
+        layout.add_widget(delete_local_data_button)
+        
+        
+        ''' ********** GLOBAL POSITIONING SYSTEM RECORD START **********'''
+        self.APP_PATH = self.user_data_dir  # get the app data dir
+        self.data_store_obj = DataStore(self.APP_PATH)        
+        self.nav_object = Navigation(self.nav_object_callback)
+        
+        self.data_store_obj.see_full_path_data()
+        
+        
+        # self.data_store_obj.DELETE_EVERYTHING(self.APP_PATH)
+        
         
         return layout
         
@@ -63,20 +97,42 @@ class LRT(App):
         self.nav_object.start()
 
         return self.label'''
+        
+        
+    def nav_object_callback(self,**kwargs):
+        # Will record data kwargs data localy
+        self.data_store_obj.record_gps_data(**kwargs)
+        self.data_store_obj.retrieve_current_date_gps_data()
+        self.data_store_obj.see_full_path_data()
+        
+        self.append_text_line_moniter(f"{kwargs.get('lat')} {kwargs.get('lon')}")
+        
 
-    def update_label(self, **kwargs):
         
-        """Called whenever GPS coordinates are updated."""
-        setattr(self.label, 'text', f"{kwargs.get('lat')} {kwargs.get('lon')} ")
+    def append_text_line_moniter(self, text):
+        if len(self.moniter_text_buffer) > 15:
+            self.moniter_text_buffer.pop(0)
+        self.moniter_text_buffer.append(text)
         
-        #self.data_store_obj.record_gps_data(**kwargs)
-        #self.data_store_obj.retrieve_current_date_gps_data()
-        #self.data_store_obj.see_full_path_data()
+        setattr(self.system_moniter, 'text', '\n'.join(self.moniter_text_buffer))
         
-    def toggle_start_gps_system(self,instance):
-        print(f"GPS system toggled {self.toggle_record_data}")
-        instance.text = "Pressed"
-        self.toggle_start_gps_system = not self.toggle_start_gps_system
+        
+    def toggle_start_gps_system(self, instance):
+        self.toggle_record_data = not self.toggle_record_data
+        state_text = 'GPS Data Collection On' if self.toggle_record_data else 'GPS Data Collection Off'
+        print(f"GPS system toggled {state_text}")
+        instance.text = state_text
+        
+        # Nav start and stop
+        if self.toggle_record_data:
+            self.nav_object.start()
+        else:
+            self.nav_object.stop()
+            
+    def delete_local_data(self,instance):
+        self.data_store_obj.DELETE_EVERYTHING(self.APP_PATH)
+        self.append_text_line_moniter("Local data deleted")
+
         
 if __name__ == '__main__':
     app = LRT()
