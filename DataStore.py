@@ -5,7 +5,7 @@ import shutil
 
 class DataStore:
     # 20 as a test
-    MAX_DATA_ENTRIES_PER_FILE = 20
+    MAX_DATA_ENTRIES_PER_FILE = 1000
     ''' Data structure
     
         date-folder
@@ -35,10 +35,8 @@ class DataStore:
         # Check to see if the current_day_path folder is empty
         if not os.listdir(self.current_day_path):
             # if empty create a new file file
-            print(f"Current day {self.current_day_timestamp_file} is empty.e")
-            self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
-            with open(self.current_day_timestamp_file, 'w'):
-                pass
+            print(f"Current day {self.current_day_timestamp_file} is empty")
+            self.create_new_timestamp_file()
         else:
             # Get the path of the last file created
             files = os.listdir(self.current_day_path)
@@ -56,9 +54,7 @@ class DataStore:
                     
             # if no valid datetime files (other misc files) create a new file
             if len(dt_list) == 0:
-                self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
-                with open(self.current_day_timestamp_file, 'w'):
-                    pass
+                self.create_new_timestamp_file()
             else:
                 # Get the latest (max)
                 latest_created_file_timestamp_label = max(dt_list)
@@ -74,9 +70,7 @@ class DataStore:
                     
                 if number_gps_entries >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
                     # Create a fresh file
-                    self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
-                    with open(self.current_day_timestamp_file, 'w'):
-                        pass
+                    self.create_new_timestamp_file()
 
         
         # Variable that stores the last recorder json line so no duplicates are inputed
@@ -116,25 +110,6 @@ class DataStore:
         self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
         with open(self.current_day_timestamp_file, 'w'):
                 pass
-            
-            
-            
-            
-            
-            
-        
-    def test_store(self):
-        # store data
-        data = {'items': ['apple', 'banana'], 'count': 2, 'custom_rand': 1234}
-        with open(self.test_json_path, 'w') as f:
-            json.dump(data, f)
-            
-    def test_retrieve(self):
-        # Retrieve data
-        with open(self.test_json_path, 'r') as f:
-            loaded_data = json.load(f)
-        print(loaded_data['items'])  # Output: ['apple', 'banana']
-        print(loaded_data['custom_rand'])
         
     ''' Data management utilities '''
     

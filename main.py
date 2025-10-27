@@ -2,6 +2,8 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from pyobjus import autoclass, objc_str
+from pyobjus.dylib_manager import load_framework
 
 
 import json
@@ -9,24 +11,25 @@ from Navigation import Navigation
 from DataStore import DataStore
 from datetime import datetime
 
-
-'''Control panel 
-    
-    Buttons
-    Start Stop toggle data collections
-    Print file directory
-    
-    Sync onboard data to Server
-    '''
-
 class LRT(App):
     
     
     def build(self):
+        ''' ********** ALLOW APP TO RUN GPS UPDATES IN THE BACKGROUND ***********'''
+        # Load the CoreLocation framework
+        load_framework('/System/Library/Frameworks/CoreLocation.framework')
+
+        # Grab Objective-C classes
+        CLLocationManager = autoclass('CLLocationManager')
+        CLLocationManagerDelegate = autoclass('NSObject')  # We'll subclass this later
+        
+        self.enable_background_location()
+
+     
         ''' ---------- UI SET UP ----------'''
         layout = BoxLayout(
             orientation='vertical',
-            padding=[10, 120, 10, 10],  # [left, top, right, bottom]
+            padding=[10, 120, 10, 150],  # [left, top, right, bottom]
             spacing=10
         )
 
@@ -66,7 +69,14 @@ class LRT(App):
             size_hint=(1,0.4)
         )
         delete_local_data_button.bind(on_press = self.delete_local_data)
-        layout.add_widget(delete_local_data_button)
+        #layout.add_widget(delete_local_data_button)
+        
+        # Push everything to server button
+        push_local_data_to_server = Button(
+            text='Push data to server',
+            size_hint=(1,0.4)
+        )
+        
         
         
         ''' ********** GLOBAL POSITIONING SYSTEM RECORD START **********'''
@@ -81,22 +91,24 @@ class LRT(App):
         
         
         return layout
-        
-        # Create label to display coordinates
-        '''
-        self.APP_PATH = self.user_data_dir  # get the app data dir
-        self.data_store_obj = DataStore(self.APP_PATH)
-        self.label = Label(
-            text='Waiting for GPS...',
-            size_hint=(.5, .5),
-            pos_hint={'center_x': .5, 'center_y': .5}
-        )
-        
-        Create Navigation object and link it to the label
-        self.nav_object = Navigation(self.update_label)
-        self.nav_object.start()
+    
+    ''' Apple pyobjus magic function '''
+    def enable_background_location(self):
+        CLLocationManager = autoclass('CLLocationManager')
+        self.location_manager = CLLocationManager.alloc().init()
 
-        return self.label'''
+        # Enable background updates
+        self.location_manager.allowsBackgroundLocationUpdates = True
+        self.location_manager.pausesLocationUpdatesAutomatically = False
+
+        # Request permission
+        self.location_manager.requestAlwaysAuthorization()
+
+        # Start receiving updates
+        self.location_manager.startUpdatingLocation()
+
+        print("Background GPS tracking enabled.")
+
         
         
     def nav_object_callback(self,**kwargs):
