@@ -22,7 +22,6 @@ class DataStore:
     def __init__(self, file_path):
         self.APP_FILE_PATH = file_path
 
-        
         # Make a new folder of the current date, do nothing if it already exists
         self.current_datetime = datetime.now()
         year = self.current_datetime.year
@@ -42,7 +41,7 @@ class DataStore:
             files = os.listdir(self.current_day_path)
             print(f"Files found in current day folder ")
             print(files)
-            files = [f.removesuffix("_gps_data.txt") for f in files]
+            files = [f.removesuffix("_gps_data.csv") for f in files]
             # Creating a list of datetime objects
             dt_list = []
             for pulled_iso_label in files:
@@ -61,7 +60,7 @@ class DataStore:
                 print("Latest timestamp:", latest_created_file_timestamp_label.isoformat())
                 
                 # Set the current_day_timestamp file to the last one
-                self.current_day_timestamp_file = f"{self.current_day_path}/{latest_created_file_timestamp_label.isoformat()}_gps_data.txt"
+                self.current_day_timestamp_file = f"{self.current_day_path}/{latest_created_file_timestamp_label.isoformat()}_gps_data.csv"
                 
                 # Check if its not <=500 lines
                 number_gps_entries = None
@@ -84,19 +83,19 @@ class DataStore:
         # Check if the file is full
         with open(self.current_day_timestamp_file, 'r') as fp:
             number_of_entries = len(fp.readlines())
+        # If its full create a new file
         if number_of_entries >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
             self.create_new_timestamp_file()
-        
+        # Write to current file
         with open(self.current_day_timestamp_file, "a") as f:
             f.write(f"{datetime.now().isoformat()},{latitude},{longitude}\n")
                 
-    
-            
+                
     def retrieve_current_date_gps_data(self):
         entries_on_file = self.get_number_of_entries(self.current_day_timestamp_file)
         if entries_on_file >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
             # Create a fresh file
-            self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
+            self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.csv"
             with open(self.current_day_timestamp_file, 'w'):
                 pass
         with open(self.current_day_timestamp_file, 'r') as f:
@@ -107,12 +106,16 @@ class DataStore:
 
             
     def create_new_timestamp_file(self):
-        self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.txt"
+        self.current_day_timestamp_file = f"{self.current_day_path}/{datetime.now().isoformat()}_gps_data.csv"
         with open(self.current_day_timestamp_file, 'w'):
                 pass
+            
+    ''' Getters '''
+    def get_current_day_entries_count(self):
+        with open(self.current_day_timestamp_file, 'r') as fp:
+            return len(fp.readlines())
         
     ''' Data management utilities '''
-    
     def get_number_of_entries(self, file_path):
         with open(file_path, 'r') as fp:
             return len([line for line in fp if line.strip()])  # only count non-empty lines
@@ -133,8 +136,6 @@ class DataStore:
             print(f"{file_path_rm} deleted")
         else:
             print("File not found")
-
-
 
     def DELETE_EVERYTHING(self, start_path):
         """
