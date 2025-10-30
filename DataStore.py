@@ -40,6 +40,10 @@ class DataStore:
             # Get the path of the last file created
             files = os.listdir(self.current_day_path)
             print(f"Files found in current day folder ")
+            # Dont include files that that arent .csv
+            for f in files:
+                if f.endswith('.txt'):
+                    files.remove(f)
             print(files)
             files = [f.removesuffix("_gps_data.csv") for f in files]
             # Creating a list of datetime objects
@@ -92,6 +96,7 @@ class DataStore:
                 
                 
     def retrieve_current_date_gps_data(self):
+        # Prints the current entries of the current date file
         entries_on_file = self.get_number_of_entries(self.current_day_timestamp_file)
         if entries_on_file >= DataStore.MAX_DATA_ENTRIES_PER_FILE:
             # Create a fresh file
