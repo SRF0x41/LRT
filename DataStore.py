@@ -42,7 +42,7 @@ class DataStore:
             print(f"Files found in current day folder ")
             # Dont include files that that arent .csv
             for f in files:
-                if f.endswith('.txt'):
+                if not f.endswith('.csv'):
                     files.remove(f)
             print(files)
             files = [f.removesuffix("_gps_data.csv") for f in files]

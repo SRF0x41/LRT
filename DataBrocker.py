@@ -57,3 +57,5 @@ class DataBrocker:
             return json.dumps(doc)
         else:
             print(f"Error {response.status_code}: {response.text}")
+            return f"Error {response.status_code}: {response.text}"
+            

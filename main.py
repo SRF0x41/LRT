@@ -6,13 +6,14 @@ from pyobjus import autoclass, objc_str
 from pyobjus.dylib_manager import load_framework
 from kivy.uix.slider import Slider
 
-
 import json
+import requests
+
 from Navigation import Navigation
 from DataStore import DataStore
 from datetime import datetime
-#from DataBrocker import DataBrocker
-import requests
+#from DataBrocker import DataBrocker # Cryptography build isnt working
+from DataLink import DataLink
 
 class LRT(App):
     
@@ -68,13 +69,7 @@ class LRT(App):
         delete_local_data_button.bind(on_press = self.delete_local_data)
         #layout.add_widget(delete_local_data_button)
         
-        # Push everything to server button
-        push_local_data_to_server_button = Button(
-            text='Push data to server',
-            size_hint=(1,0.4)
-        )
-        push_local_data_to_server_button.bind(on_press=self.push_local_data_to_server)
-        #layout.add_widget(push_local_data_to_server_button)
+        
         
         
         ''' ********** GLOBAL POSITIONING SYSTEM RECORD START **********'''
@@ -88,7 +83,23 @@ class LRT(App):
         # self.data_store_obj.DELETE_EVERYTHING(self.APP_PATH)
         
         ''' ********** SERVER CONNECTION START ********** '''
-        # self.data_broker_obj = DataBrocker()
+        '''self.data_broker_obj = DataBrocker()
+        
+        # Push everything to server button
+        push_local_data_to_server_button = Button(
+            text='Push data to server',
+            size_hint=(1,0.4)
+        )
+        push_local_data_to_server_button.bind(on_press=self.push_local_data_to_server)
+        layout.add_widget(push_local_data_to_server_button)'''
+        
+        ''' ********** CLIENT SIDE DATA LINK ********** '''
+        
+        
+        push_local_data_to_server_button = Button(
+            text='Push data to server',
+            size_hint=(1,0.4)
+        )
         
         
         return layout
@@ -156,18 +167,10 @@ class LRT(App):
         
     ''' ********** SERVER UTILITIES ********** '''
     def push_local_data_to_server(self,instance):
-        """
-        Checks for an internet connection by attempting to make an HTTP request.
+        self.data_link_obj = DataLink()
         
-        url = "http://www.google.com"
-        try:
-            requests.head(url, timeout=5)
-            self.append_text_line_moniter("Live Connection")
-            
-            
-        except (requests.ConnectionError, requests.Timeout):
-            self.append_text_line_moniter("ERR: No internet connection")
-            """
+        
+    
         
         
             
