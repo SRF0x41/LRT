@@ -120,6 +120,80 @@ class DataStore:
         with open(self.current_day_timestamp_file, 'r') as fp:
             return len(fp.readlines())
         
+    def walk_all_local_data(self):
+        print(f"Test get all date dir")
+        for root, dirs, files in os.walk(self.APP_FILE_PATH):
+            print(f"Current directory: {root}")
+            print(f"Subdirectories: {dirs}")
+            print(f"Files: {files}\n")
+            
+    def get_all_dirs(self):
+        ''' See all date folders starting from root '''
+        entries = [f"{self.APP_FILE_PATH}/{dir}" for dir in os.listdir(self.APP_FILE_PATH) ]
+        return(entries)
+        
+        
+    def get_all_file_names_from_dir(self, root_name):
+        ''' Get all'''
+        files = [file for file in os.listdir(f"{self.APP_FILE_PATH}/{root_name}")]
+        return files
+    
+    def get_all_file_names_from_path(self, full_file_path):
+        files = [file for file in os.listdir(full_file_path)]
+        return files
+    
+    def get_all_file_paths_from_path(self,full_file_path):
+        files = [f"{full_file_path}/{file}" for file in os.listdir(full_file_path)]
+        return files
+    
+    def get_file_data_bytes(self,full_path):
+        '''with open("photo.jpg", "rb") as f:
+            data = f.read(1024)  # read 1 KB'''
+            
+        # Example see readable csvs
+        with open(full_path, 'r') as f:
+            for line in f:
+                print(line)
+            
+        """ with open(full_path, 'rb') as f:
+            chunk_1k = f.read(1024)"""
+            
+            
+    def get_all_file_canon_paths(self):
+        list_of_all_files = []
+        print(f"Test get all date dir")
+        for root, dirs, files in os.walk(self.APP_FILE_PATH):
+            if files:
+                
+                for f in files:
+                    list_of_all_files.append(f"{root}/{f}")
+                
+                
+            print(f"Current directory: {root}")
+            print(f"Subdirectories: {dirs}")
+            print(f"Files: {files}\n")
+            
+        return list_of_all_files
+    
+    
+    def get_all_file_relative_paths(self):
+        list_of_all_files = []
+        print(f"Test get all date dir")
+        for root, dirs, files in os.walk(self.APP_FILE_PATH):
+            root = root.split(os.sep)
+            root = os.sep.join(root[9:])
+            if files:
+                for f in files:
+                    list_of_all_files.append(f"{root}/{f}")      
+                
+                
+            print(f"Current directory: {root}")
+            print(f"Subdirectories: {dirs}")
+            print(f"Files: {files}\n")
+            
+        return list_of_all_files
+    
+        
     ''' Data management utilities '''
     def get_number_of_entries(self, file_path):
         with open(file_path, 'r') as fp:

@@ -8,6 +8,8 @@ from kivy.uix.slider import Slider
 
 import json
 import requests
+import os
+from dotenv import load_dotenv
 
 from Navigation import Navigation
 from DataStore import DataStore
@@ -19,6 +21,7 @@ class LRT(App):
     
     
     def build(self):
+        #print(f"My env var {os.getenv("TEST_ENV")}")
         ''' ********** ALLOW APP TO RUN GPS UPDATES IN THE BACKGROUND ***********'''
         # Load the CoreLocation framework
         load_framework('/System/Library/Frameworks/CoreLocation.framework')
@@ -100,7 +103,8 @@ class LRT(App):
             text='Push data to server',
             size_hint=(1,0.4)
         )
-        
+        push_local_data_to_server_button.bind(on_press = self.push_local_data_to_server)
+        layout.add_widget(push_local_data_to_server_button)
         
         return layout
     
@@ -146,6 +150,18 @@ class LRT(App):
         
         setattr(self.system_moniter, 'text', '\n'.join(self.moniter_text_buffer))
         
+    def append_text_moniter(self, text_list):
+        text_list_length = len(text_list)
+        lines_to_remove = 15 - text_list_length
+        
+        if lines_to_remove <= 0:
+            self.moniter_text_buffer = text_list[-15:]
+        else:
+            for i in range(lines_to_remove):
+                self.moniter_text_buffer.pop(0)
+            self.moniter_text_buffer.append(text_list)
+            
+        
         
     def toggle_start_gps_system(self, instance):
         self.toggle_record_data = not self.toggle_record_data
@@ -167,7 +183,34 @@ class LRT(App):
         
     ''' ********** SERVER UTILITIES ********** '''
     def push_local_data_to_server(self,instance):
-        self.data_link_obj = DataLink()
+        data_link_obj = DataLink()
+        #data_link_obj.test_send()
+      
+        
+        
+        
+        all_local_files_canon_paths = self.data_store_obj.get_all_file_canon_paths()
+        print("ALL LOCAL FILES")
+        print(all_local_files_canon_paths)
+        
+      
+
+        # test send a file 
+        
+        data_link_obj.establish_connection_server()
+        for i in range(3):
+            data_link_obj.file_data_stream(all_local_files_canon_paths[i])
+       
+        
+        data_link_obj.close_socket()
+        
+        
+        
+        
+        
+        
+        
+        
         
         
     
